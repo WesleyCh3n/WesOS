@@ -1,7 +1,24 @@
-ORG 0x7c00
+ORG 0
 BITS 16
+_start:
+  jmp short start
+  nop
+
+times 33 db 0
 
 start:
+  jmp 0x7c0:step2
+
+step2:
+  cli  ; Clear Interrupts
+  mov ax, 0x7c0
+  mov ds, ax
+  mov es, ax
+  mov ax, 0x00
+  mov ss, ax
+  mov sp, 0x7c00
+  sti  ; Enables Interrupts
+
   mov si, message
   call print
   jmp $
@@ -12,14 +29,14 @@ print:
   lodsb
   cmp al, 0
   je .done
-  call print_chaar
+  call print_char
   jmp .loop
 .done:
   ret
 
 print_char:
   mov ah, 0eh
-  int 0x10   ;bios sys call
+  int 0x10   ; Bios sys call
   ret
 
 message: db "Hello World!", 0
@@ -27,6 +44,5 @@ message: db "Hello World!", 0
 ; Padding zero
 times 510-($ - $$) db 0
 dw 0xAA55
-
 ; nasm -f bin -o boot.bin ./boot.asm
 ; qemu-system-x86_64 -nographic -hda ./boot.bin
